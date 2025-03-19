@@ -1,0 +1,28 @@
+---
+- name: Deploy Nginx and Update Web Pages
+  hosts: servers
+  become: yes
+
+  tasks:
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Copy correct index.html file
+      ansible.builtin.copy:
+        src: "{{ 'index-aws.html' if inventory_hostname == 'aws-app' else 'index-azure.html' }}"
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+        enabled: yes
